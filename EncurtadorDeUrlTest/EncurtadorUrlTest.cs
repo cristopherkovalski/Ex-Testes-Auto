@@ -14,13 +14,13 @@ namespace EncurtadorDeUrlTest
         }
 
         [Fact]
-        public void EncurtaURL_Deve_Retornar_URL_Curta_Valida()
+        public async Task EncurtaURL_Deve_Retornar_URL_Curta_ValidaAsync()
         {
             // Arrange
             string originalURL = "http://example.com/";
 
             // Act
-            var (id, URL, expiracao) = _urlShortenerService.EncurtaURL(originalURL);
+            var (id, URL, expiracao) = await _urlShortenerService.EncurtaURL(originalURL);
 
             // Assert
             URL.Should().NotBeNullOrEmpty();
@@ -33,44 +33,43 @@ namespace EncurtadorDeUrlTest
         [InlineData("http://example1.com/adobe/acrobat/aWedwewAWdedf")]
         [InlineData("http://example2.com/pesquisar/cadastros")]
         [InlineData("http://example3.com")]
-        public void GetOriginalURL_Deve_Retornar_URL_Original_Correta(string originalURL)
+        public async Task GetOriginalURL_Deve_Retornar_URL_Original_CorretaAsync(string originalURL)
         {
             // Arrange
-            var (id, shortURL, _) = _urlShortenerService.EncurtaURL(originalURL);
+            var (id, shortURL, _) = await _urlShortenerService.EncurtaURL(originalURL);
 
             // Act
-            string returnedURL = _urlShortenerService.GetOriginalURL(shortURL);
+            string returnedURL = await _urlShortenerService.GetOriginalURL(shortURL);
 
             // Assert
             returnedURL.Should().Be(originalURL);
         }
 
         [Fact]
-        public void GetOriginalURL_Deve_Lancar_Excecao_Quando_URL_Curta_Invalida()
+        public async Task GetOriginalURL_Deve_Lancar_Excecao_Quando_URL_Curta_Invalida()
         {
             // Arrange
             string shortURL = "http://shortURLME.com/invalid";
 
-            // Act
-            Action act = () => _urlShortenerService.GetOriginalURL(shortURL);
-
-            // Assert
-            act.Should().Throw<ArgumentException>().WithMessage("URL curta inválida");
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<ArgumentException>(async () => await _urlShortenerService.GetOriginalURL(shortURL));
+            exception.Message.Should().Be("URL curta inválida");
         }
 
+
         [Fact]
-        public void GetOriginalURL_Deve_Lancar_Excecao_Quando_URL_Curta_Expirada()
+        public async Task GetOriginalURL_Deve_Lancar_Excecao_Quando_URL_Curta_ExpiradaAsync()
         {
             // Arrange
             string originalURL = "http://example.com";
-            var (id, shortURL, _) = _urlShortenerService.EncurtaURL(originalURL);
-            System.Threading.Thread.Sleep(20000); 
+            var (id, shortURL, _) = await _urlShortenerService.EncurtaURL(originalURL);
+            System.Threading.Thread.Sleep(20000);
 
             // Act
-            Action act = () => _urlShortenerService.GetOriginalURL(shortURL);
+            Func<Task> act = async () => await _urlShortenerService.GetOriginalURL(shortURL);
 
             // Assert
-            act.Should().Throw<ArgumentException>().WithMessage("URL curta expirada");
+            await act.Should().ThrowAsync<ArgumentException>().WithMessage("URL curta expirada");
         }
     }
 

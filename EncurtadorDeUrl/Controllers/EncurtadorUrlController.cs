@@ -17,9 +17,9 @@ namespace EncurtadorDeUrl.Controllers
         }
 
         [HttpPost]
-        public ActionResult ShortenURL([FromBody] string originalURL)
+        public async Task <ActionResult> ShortenURL([FromBody] string originalURL)
         {
-            var (id, shortURL, expiration) = _encurtadorUrlService.EncurtaURL(originalURL);
+            var (id, shortURL, expiration) = await _encurtadorUrlService.EncurtaURL(originalURL);
             return Ok(new
             {
                 ID = id,
@@ -29,11 +29,11 @@ namespace EncurtadorDeUrl.Controllers
         }
 
         [HttpGet]
-        public ActionResult GetOriginalURL(string shortURL)
+       public async Task <ActionResult>GetOriginalURL(string shortURL)
         {
             try
             {
-                string originalURL = _encurtadorUrlService.GetOriginalURL(shortURL);
+                string originalURL = await _encurtadorUrlService.GetOriginalURL(shortURL);
                 return Ok(originalURL);
             }
             catch (ArgumentException ex)
